@@ -69,8 +69,7 @@ where
 {
     let path = path.as_ref();
 
-    let contents = std::fs::read_to_string(path)
-        .or_error(|| format!("Failed to read file: {}", path.display()))?;
+    let contents = std::fs::read_to_string(path)?;
 
     toml::from_str(&contents).map_err(|err| {
         #[allow(deprecated)]
@@ -84,7 +83,7 @@ where
                 format!(" at line {line}")
             })
             .unwrap_or_default();
-        Error::new(format!(
+        CalibrightError::Other(format!(
             "Failed to deserialize TOML file {}{}: {}",
             path.display(),
             location_msg,
@@ -103,7 +102,7 @@ pub async fn read_file(path: impl AsRef<Path>) -> std::io::Result<String> {
 /// Scale a number from 0.0-1.0 to an arbitrary scale
 pub fn scale_to_clamped_relative(absolute_value: f64, low: f64, high: f64) -> Result<f64> {
     if low > high {
-        Err(Error::new("Low cannot be less than high"))
+        Err(CalibrightError::InvalidScaleParameters { low, high })
     } else {
         Ok(absolute_value.clamp(0.0, 1.0) * (high - low) + low)
     }
@@ -112,7 +111,7 @@ pub fn scale_to_clamped_relative(absolute_value: f64, low: f64, high: f64) -> Re
 // Scale a number from an arbitrary scale to 0.0-1.0
 pub fn scale_to_clamped_absolute(relative_value: f64, low: f64, high: f64) -> Result<f64> {
     if low > high {
-        Err(Error::new("Low cannot be less than high"))
+        Err(CalibrightError::InvalidScaleParameters { low, high })
     } else {
         Ok((relative_value.clamp(low, high) - low) / (high - low))
     }
@@ -125,7 +124,7 @@ where
 {
     let all_results = join_all(iter).await;
     let mut results: Vec<T> = Vec::new();
-    let mut error: Error = Error::new("tried to join 0 futures");
+    let mut error = CalibrightError::NoDevices;
     for result in all_results {
         match result {
             Ok(x) => results.push(x),

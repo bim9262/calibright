@@ -22,7 +22,3 @@ features = ["derive"]
 [dependencies.tokio]
 workspace = true
 default-features = false
-features = [
-  "macros",
-  "rt-multi-thread",
-]

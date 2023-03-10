@@ -1,0 +1,29 @@
+version: '0.2'
+language: en-US, en-GB
+allowCompoundWords: true
+ignorePaths:
+  - target/
+  - man/
+ignoreRegExpList:
+  # Ignore usernames that are @'d 
+  - /@[\w-]*/g
+  #  Ignore names in dbus_proxy
+  - /#\[dbus_proxy\([\w\s=\.",\/]*\)\]/gm
+    # Ignore unicode characters
+  - /(\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})/g
+words:
+  - clippy
+  - consts
+  - dbus
+  - ddcci
+  - ddcutil
+  - inotify
+  - Malyn
+  - MSVC
+  - powf
+  - recip
+  - rustc
+  - rustfmt
+  - serde
+  - sysfs
+  - zbus

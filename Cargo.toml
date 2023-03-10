@@ -1,0 +1,19 @@
+[workspace.package]
+description = "A brightness utility that allows you to calibrate brightness between monitors"
+repository = "https://github.com/bim9262/calibright"
+readme = "README.md"
+license = "GPL-3.0-only"
+authors = ["Bryan Malyn <bim9262@gmail.com>"]
+edition = "2021"
+
+[workspace]
+members = ["lib", "bin"]
+
+
+[workspace.dependencies]
+tokio = {version = "1.12",default-features = false,features = ["macros","rt-multi-thread",]}
+
+
+[patch.crates-io]
+calibright = { path = "lib/" }
+calibright_cli = { path = "bin/" }

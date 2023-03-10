@@ -18,10 +18,10 @@ use futures::future::join_all;
 use regex::Regex;
 use tokio::fs::read_dir;
 
-pub use crate::config::Config;
+pub use crate::config::CalibrightConfig;
 use crate::consts::*;
 use crate::device::Device;
-pub use crate::errors::Error;
+pub use crate::errors::CalibrightError;
 use crate::errors::*;
 use crate::util::*;
 #[cfg(feature = "watch")]
@@ -31,7 +31,7 @@ make_log_macro!(debug, "calibright");
 
 pub struct CalibrightBuilder<'a> {
     device_regex: &'a str,
-    config: Option<Config>,
+    config: Option<CalibrightConfig>,
     #[cfg(feature = "watch")]
     poll_interval: Duration,
 }
@@ -57,7 +57,7 @@ impl<'a> CalibrightBuilder<'a> {
         self
     }
 
-    pub fn with_config(mut self, config: Config) -> Self {
+    pub fn with_config(mut self, config: CalibrightConfig) -> Self {
         self.config = Some(config);
         self
     }
@@ -71,11 +71,11 @@ impl<'a> CalibrightBuilder<'a> {
     pub async fn build(self) -> Result<Calibright> {
         let config = match self.config {
             Some(config) => config,
-            None => Config::new().await?,
+            None => CalibrightConfig::new().await?,
         };
 
         Calibright::new(
-            Regex::new(self.device_regex).error("Illegal regex")?,
+            Regex::new(self.device_regex)?,
             config,
             #[cfg(feature = "watch")]
             self.poll_interval,
@@ -103,19 +103,13 @@ pub struct Calibright {
 impl Calibright {
     pub(crate) async fn new(
         device_regex: Regex,
-        config: Config,
+        config: CalibrightConfig,
         #[cfg(feature = "watch")] poll_interval: Duration,
     ) -> Result<Self> {
-        let mut sysfs_paths = read_dir(DEVICES_PATH)
-            .await
-            .error("Failed to read backlight device directory")?;
+        let mut sysfs_paths = read_dir(DEVICES_PATH).await?;
 
         let mut device_names = Vec::new();
-        while let Some(sysfs_path) = sysfs_paths
-            .next_entry()
-            .await
-            .error("No backlight devices found")?
-        {
+        while let Some(sysfs_path) = sysfs_paths.next_entry().await? {
             let device_name = sysfs_path.file_name();
             if device_regex.is_match(&device_name.to_string_lossy()) {
                 debug!(
@@ -250,7 +244,7 @@ impl Calibright {
                 return Ok(());
             }
         }
-        Err(Error::new("Nothing to watch"))
+        Err(CalibrightError::Other("Nothing to watch".into()))
     }
 
     pub async fn get_brightness(&mut self) -> Result<f64> {
@@ -259,8 +253,7 @@ impl Calibright {
                 .iter_mut()
                 .map(|(_, device)| device.get_brightness()),
         )
-        .await
-        .error("No backlight devices found")?;
+        .await?;
 
         Ok(brightnesses.iter().sum::<f64>() / (brightnesses.len() as f64))
     }
@@ -271,8 +264,7 @@ impl Calibright {
                 .iter_mut()
                 .map(|(_, device)| device.set_brightness(brightness)),
         )
-        .await
-        .error("No backlight devices found")?;
+        .await?;
 
         Ok(())
     }

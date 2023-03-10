@@ -43,9 +43,7 @@ impl Device {
     pub async fn new(device_name: &String, config: DeviceConfig) -> Result<Self> {
         let device_path = PathBuf::from(DEVICES_PATH).join(device_name);
 
-        let dbus_conn = Connection::system()
-            .await
-            .error("Failed to open DBus session connection")?;
+        let dbus_conn = Connection::system().await?;
 
         let mut s = Self {
             read_brightness_file: device_path.join({
@@ -59,9 +57,7 @@ impl Device {
             device_name: device_name.into(),
             raw_brightness: 0,
             max_brightness: 0,
-            dbus_proxy: SessionProxy::new(&dbus_conn)
-                .await
-                .error("Failed to create SessionProxy")?,
+            dbus_proxy: SessionProxy::new(&dbus_conn).await?,
             config,
             #[cfg(feature = "watch")]
             updated_at: Instant::now(),
@@ -87,19 +83,15 @@ impl Device {
                     ))
                     .await;
                     if let Ok(val) = read_file(device_file).await {
-                        return val
-                            .parse()
-                            .error("Failed to read value from brightness file");
+                        return Ok(val.parse()?);
                     }
                 }
-                Err(Error::new(
-                    "Failed to read brightness file, check your ddcci settings",
+                Err(CalibrightError::Other(
+                    "Failed to read brightness file, check your ddcci settings".into(),
                 ))
             }
         };
-        val.error("Failed to read brightness file")?
-            .parse()
-            .error("Failed to read value from brightness file")
+        Ok(val?.parse()?)
     }
 
     /// Query the brightness value for this backlight device, as a percent (0.0..=1.0).
@@ -142,11 +134,10 @@ impl Device {
                     .write(true)
                     .truncate(true)
                     .open(&self.write_brightness_file)
-                    .await
-                    .error("Could not open brightness file to write")?;
-                file.write_all(self.raw_brightness.to_string().as_bytes())
-                    .await
-                    .error("Could not write sysfs brightness")
+                    .await?;
+                Ok(file
+                    .write_all(self.raw_brightness.to_string().as_bytes())
+                    .await?)
             }
         }
         .map(|_| {

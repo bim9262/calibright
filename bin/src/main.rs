@@ -1,4 +1,4 @@
-use calibright::CalibrightBuilder;
+use calibright::{CalibrightBuilder, CalibrightError};
 
 use clap::{ArgGroup, Parser};
 
@@ -34,10 +34,9 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<(), CalibrightError> {
     env_logger::init();
     let args = Args::parse();
-    println!("{:?}", args);
 
     let mut calibright = CalibrightBuilder::new()
         .with_device_regex(args.device.as_str())

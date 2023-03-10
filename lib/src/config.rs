@@ -64,7 +64,15 @@ where
     debug!("{:?}", calibration);
     let calibration = match calibration {
         Calibration::Max(high) => [0.0, high],
-        Calibration::Range(r) => r,
+        Calibration::Range(r) => {
+            if r[0] > r[1] {
+                return Err(serde::de::Error::invalid_value(
+                    serde::de::Unexpected::Other(format!("{r:?}").as_str()),
+                    &format!("Invalid scale parameters: {} > {}", r[0], r[1]).as_str(),
+                ));
+            }
+            r
+        }
     };
     debug!("{:?}", calibration);
 
@@ -81,13 +89,13 @@ where
 
 #[derive(Deserialize, Clone, SmartDefault)]
 #[serde(default)]
-pub struct Config {
+pub struct CalibrightConfig {
     global: DeviceConfig,
     #[serde(flatten)]
     overrides: HashMap<String, DeviceConfig>,
 }
 
-impl Config {
+impl CalibrightConfig {
     pub async fn new(// default_root_scaling: Option<f64>,
         // default_ddcci_sleep_multiplier: Option<f64>,
         // default_ddcci_max_tries_write_read: Option<u8>,
@@ -95,7 +103,7 @@ impl Config {
         if let Some(config_path) = find_file("config", None, Some("toml")) {
             deserialize_toml_file(config_path)
         } else {
-            Ok(Config::default())
+            Ok(CalibrightConfig::default())
         }
     }
 

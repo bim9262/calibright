@@ -29,7 +29,7 @@ trait Session {
 #[derive(Clone)]
 pub struct Device {
     pub device_name: OsString,
-    read_brightness_file: PathBuf,
+    pub read_brightness_file: PathBuf,
     write_brightness_file: PathBuf,
     raw_brightness: u32,
     max_brightness: u32,
@@ -155,10 +155,6 @@ impl Device {
                 self.updated_at = Instant::now();
             }
         })
-    }
-
-    pub fn get_read_brightness_file(&self) -> &PathBuf {
-        &self.read_brightness_file
     }
 
     #[cfg(feature = "watch")]

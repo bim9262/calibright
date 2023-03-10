@@ -12,7 +12,7 @@ mod errors;
 mod watcher;
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::ffi::OsString;
 
 use futures::future::join_all;
 use regex::Regex;
@@ -86,15 +86,16 @@ impl<'a> CalibrightBuilder<'a> {
 
 #[cfg(not(feature = "watch"))]
 pub struct Calibright {
-    devices: HashMap<PathBuf, Device>,
+    devices: HashMap<OsString, Device>,
 }
 
 #[cfg(feature = "watch")]
 pub struct Calibright {
-    devices: HashMap<PathBuf, Device>,
+    devices: HashMap<OsString, Device>,
     device_regex: Regex,
-    config: Config,
-    watcher: PollWatcher,
+    config: CalibrightConfig,
+    _poll_watcher: PollWatcher,
+    inotify_watcher: INotifyWatcher,
     rx: Receiver<notify::Result<notify::Event>>,
     poll_interval: Duration,
 }
@@ -127,7 +128,7 @@ impl Calibright {
             }
         }
 
-        let mut device_map = HashMap::<PathBuf, Device>::new();
+        let mut device_map = HashMap::new();
         let device_list =
             join_all(device_names.iter().map(|device_name| {
                 Device::new(device_name, config.get_device_config(device_name))
@@ -144,8 +145,7 @@ impl Calibright {
         #[cfg(not(feature = "watch"))]
         {
             for device in device_list {
-                let watch_path = device.get_read_brightness_file().to_path_buf();
-                device_map.insert(watch_path, device);
+                device_map.insert(device.device_name.clone(), device);
             }
 
             Ok(Calibright {
@@ -155,22 +155,21 @@ impl Calibright {
 
         #[cfg(feature = "watch")]
         {
-            let (mut watcher, rx) =
-                pseudo_fs_watcher(DEVICES_PATH, poll_interval).error("Failed to start inotify")?;
+            let (_poll_watcher, mut inotify_watcher, rx) =
+                pseudo_fs_watcher(DEVICES_PATH, poll_interval)?;
 
             for device in device_list {
-                let watch_path = device.get_read_brightness_file().to_path_buf();
-                watcher
-                    .watch(&watch_path, notify::RecursiveMode::NonRecursive)
-                    .error("Could not watch path")?;
-                device_map.insert(watch_path, device);
+                let watch_path = device.read_brightness_file.to_path_buf();
+                inotify_watcher.watch(&watch_path, notify::RecursiveMode::NonRecursive)?;
+                device_map.insert(device.device_name.clone(), device);
             }
 
             Ok(Calibright {
                 devices: device_map,
                 device_regex,
                 config,
-                watcher,
+                _poll_watcher,
+                inotify_watcher,
                 rx,
                 poll_interval,
             })
@@ -180,10 +179,11 @@ impl Calibright {
     #[cfg(feature = "watch")]
     pub async fn next(&mut self) -> Result<()> {
         use futures::StreamExt;
-        use std::path::Path;
+        use std::path::{Path, PathBuf};
 
         while let Some(res) = self.rx.next().await {
-            let event = res.map_err(|e| Error::new(e.to_string()))?;
+            let mut change_occurred = false;
+            let event = res?;
             debug!("{:?}", event);
             let depth1_paths: Vec<&PathBuf> = event
                 .paths
@@ -197,44 +197,57 @@ impl Calibright {
                 .collect();
             if event.kind.is_create() && !depth1_paths.is_empty() {
                 for path in depth1_paths {
-                    let device_name = path
-                        .file_name()
-                        .error("No file name present")?
-                        .to_string_lossy()
-                        .to_string();
-                    debug!("New device {:?}", device_name);
-                    if self.devices.contains_key(path) {
-                        // We already know about this device, so no need to create a new `Device`
-                        debug!("New device {:?}, already known", path);
-                        continue;
-                    }
-                    if self.device_regex.is_match(&device_name) {
-                        debug!("{:?} matched {}", device_name, self.device_regex.as_str());
-                        let new_device =
-                            Device::new(&device_name, self.config.get_device_config(&device_name))
-                                .await?;
-                        let watch_path = new_device.get_read_brightness_file();
-                        self.watcher
-                            .watch(watch_path, notify::RecursiveMode::NonRecursive)
-                            .error("Could not watch path")?;
-                        self.devices.insert(watch_path.to_path_buf(), new_device);
-                    }
-                }
-                return Ok(());
-            } else if event.kind.is_remove() && !depth1_paths.is_empty() {
-                for path in depth1_paths {
-                    self.devices.remove(path);
-                    self.watcher.unwatch(path).error("Could not remove watch")?;
-                }
-                return Ok(());
-            } else if event.kind.is_modify() && !brightness_paths.is_empty() {
-                for brightness_path in brightness_paths {
-                    if let Some(device) = self.devices.get(brightness_path) {
-                        if device.get_last_set_ago() > self.poll_interval {
-                            return Ok(());
+                    if let Some(file_name) = path.file_name() {
+                        let device_name = file_name.to_string_lossy().to_string();
+                        debug!("New device {:?}", device_name);
+                        if self.devices.contains_key(file_name) {
+                            // We already know about this device, so no need to create a new `Device`
+                            debug!("New device {:?}, already known", path);
+                            continue;
+                        }
+                        if self.device_regex.is_match(&device_name) {
+                            debug!("{:?} matched {}", device_name, self.device_regex.as_str());
+                            let new_device = Device::new(
+                                &device_name,
+                                self.config.get_device_config(&device_name),
+                            )
+                            .await?;
+                            let watch_path = new_device.read_brightness_file.clone();
+                            self.inotify_watcher
+                                .watch(&watch_path, notify::RecursiveMode::NonRecursive)?;
+                            self.devices
+                                .insert(new_device.device_name.clone(), new_device);
+                            change_occurred = true;
                         }
                     }
                 }
+            } else if event.kind.is_remove() && !depth1_paths.is_empty() {
+                for path in depth1_paths {
+                    if let Some(file_name) = path.file_name() {
+                        debug!("Remove {}", path.display());
+                        if let Some(old_device) = self.devices.remove(file_name) {
+                            debug!("Removed {}", old_device.read_brightness_file.display());
+                            self.inotify_watcher
+                                .unwatch(&old_device.read_brightness_file)?;
+                            change_occurred = true;
+                        }
+                    }
+                }
+            } else if event.kind.is_modify() && !brightness_paths.is_empty() {
+                for brightness_path in brightness_paths {
+                    if let Some(path) = brightness_path.parent() {
+                        if let Some(file_name) = path.file_name() {
+                            if let Some(device) = self.devices.get(file_name) {
+                                if device.get_last_set_ago() > self.poll_interval {
+                                    change_occurred = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if change_occurred {
+                return Ok(());
             }
         }
         Err(Error::new("Nothing to watch"))

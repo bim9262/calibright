@@ -10,15 +10,6 @@ use smart_default::SmartDefault;
 
 make_log_macro!(debug, "config");
 
-/// Calibration values are from 0 to 100, can be expressed either as a single number
-/// as a max value, or a pair of values to express min and max brightness limits.
-#[derive(Deserialize, Debug, Clone)]
-#[serde(untagged)]
-enum Calibration {
-    Max(f64),
-    Range([f64; 2]),
-}
-
 #[derive(Deserialize, Clone, Debug, SmartDefault)]
 #[serde(default)]
 #[serde(deny_unknown_fields)]
@@ -60,21 +51,18 @@ fn deserialize_calibration<'de, D>(deserializer: D) -> Result<[f64; 2], D::Error
 where
     D: Deserializer<'de>,
 {
-    let calibration = Calibration::deserialize(deserializer)?;
+    let calibration: [f64; 2] = Deserialize::deserialize(deserializer)?;
     debug!("{:?}", calibration);
-    let calibration = match calibration {
-        Calibration::Max(high) => [0.0, high],
-        Calibration::Range(r) => {
-            if r[0] > r[1] {
-                return Err(serde::de::Error::invalid_value(
-                    serde::de::Unexpected::Other(format!("{r:?}").as_str()),
-                    &format!("Invalid scale parameters: {} > {}", r[0], r[1]).as_str(),
-                ));
-            }
-            r
-        }
-    };
-    debug!("{:?}", calibration);
+    if calibration[0] > calibration[1] {
+        return Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Other(format!("{calibration:?}").as_str()),
+            &format!(
+                "Invalid scale parameters: {} > {}",
+                calibration[0], calibration[1]
+            )
+            .as_str(),
+        ));
+    }
 
     for val in calibration {
         if !CALIBRATION_RANGE.contains(&val) {

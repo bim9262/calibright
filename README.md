@@ -15,7 +15,7 @@ Key                          | Value                                            
 `root_scaling`               | Scaling exponent reciprocal (ie. root) Allows values from `0.1` to `10.0`                         | `1.0`
 `ddcci_sleep_multiplier`     | See [ddcutil documentation](https://www.ddcutil.com/performance_options/#option-sleep-multiplier) | `1.0`
 `ddcci_max_tries_write_read` | The maximum number of times to attempt writing to  or reading from a ddcci monitor                | `10`
-`calibration`                | Either a single value denoting the max brightness or pair of values for the min and max values    | `[0.0, 100.0]`
+`calibration`                | A pair of floats representing the the min and max brightness                                      | `[0.0, 100.0]`
 
 
 A simple example config could look like:

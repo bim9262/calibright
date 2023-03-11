@@ -25,7 +25,7 @@ A simple example config could look like:
 ddcci_sleep_multiplier = 0.1
 
 [ddcci6]
-calibration = 90
+calibration = [0, 90]
 
 [ddcci7]
 calibration = [10, 80]

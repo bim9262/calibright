@@ -6,7 +6,7 @@ readme.workspace = true
 license.workspace = true
 authors.workspace = true
 edition.workspace = true
-version = "0.1.1"
+version = "0.1.2"
 
 [features]
 watch = ["notify"]
@@ -33,8 +33,11 @@ version = "1.0"
 default-features = false
 features = ["derive", "rc"]
 
-
 [dependencies.zbus]
 version = "3.8"
 default-features = false
 features = ["tokio"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

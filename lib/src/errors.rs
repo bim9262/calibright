@@ -13,6 +13,7 @@ pub enum CalibrightError {
     InvalidRegex(#[from] regex::Error),
 
     #[cfg(feature = "watch")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "watch")))]
     #[error("{0}")]
     Notify(#[from] notify::Error),
 

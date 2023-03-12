@@ -18,7 +18,7 @@ use futures::future::join_all;
 use regex::Regex;
 use tokio::fs::read_dir;
 
-pub use crate::config::CalibrightConfig;
+pub use crate::config::{CalibrightConfig, DeviceConfig};
 use crate::consts::*;
 use crate::device::Device;
 pub use crate::errors::CalibrightError;

@@ -76,13 +76,20 @@ where
 
 #[derive(Clone, Debug, SmartDefault)]
 pub struct DeviceConfig {
+    /// Scaling exponent reciprocal (ie. root).
     #[default(1.0)]
     pub root_scaling: f64,
+
+    /// See [ddcutil documentation](https://www.ddcutil.com/performance_options/#option-sleep-multiplier).
     #[default(1.0)]
     pub ddcci_sleep_multiplier: f64,
+
+    /// The maximum number of times to attempt writing to  or reading from a ddcci monitor.
     #[default(10)]
     pub ddcci_max_tries_write_read: u8,
-    /// Calibration values are given as 0-100 in the config, but mapped to 0-1
+
+    /// A pair of floats representing the the min and max brightness.
+    /// Calibration values are given as 0-100 in the config, but mapped to 0-1.
     #[default([0.0, 1.0])]
     pub calibration: [f64; 2],
 }
@@ -96,6 +103,7 @@ struct UnresolvedCalibrightConfig {
 }
 
 #[derive(Clone)]
+/// Reads in the calibright configuration file
 pub struct CalibrightConfig {
     global: DeviceConfig,
     overrides: HashMap<String, DeviceConfig>,
@@ -142,10 +150,12 @@ impl UnresolvedCalibrightConfig {
 }
 
 impl CalibrightConfig {
+    ///  Uses [`DeviceConfig::default`] for the default global values.
     pub async fn new() -> Result<Self> {
         CalibrightConfig::new_with_defaults(&DeviceConfig::default()).await
     }
 
+    /// Uses a custom [`DeviceConfig`] for the default global values.
     pub async fn new_with_defaults(defaults: &DeviceConfig) -> Result<Self> {
         if let Some(config_path) = find_file("config", None, Some("toml")) {
             deserialize_toml_file(config_path)

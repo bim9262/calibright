@@ -2,7 +2,7 @@
 
 ### Docs
 
-https://bmalyn.com/calibright
+https://docs.rs/calibright
 
 ### Usage
 

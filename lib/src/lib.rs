@@ -1,6 +1,7 @@
 #![warn(clippy::match_same_arms)]
 #![warn(clippy::semicolon_if_nothing_returned)]
 #![warn(clippy::unnecessary_wraps)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[macro_use]
 mod util;
@@ -29,6 +30,7 @@ use crate::watcher::*;
 
 make_log_macro!(debug, "calibright");
 
+/// Used to construct [`Calibright`]
 pub struct CalibrightBuilder<'a> {
     device_regex: &'a str,
     config: Option<CalibrightConfig>,
@@ -48,26 +50,32 @@ impl<'a> Default for CalibrightBuilder<'a> {
 }
 
 impl<'a> CalibrightBuilder<'a> {
+    /// Create a new [`CalibrightBuilder`].
     pub fn new() -> Self {
         CalibrightBuilder::default()
     }
 
+    /// Defaults to `"."` (matches all devices).
     pub fn with_device_regex(mut self, device_regex: &'a str) -> Self {
         self.device_regex = device_regex;
         self
     }
 
+    /// Defaults to [`CalibrightConfig::new()`].
     pub fn with_config(mut self, config: CalibrightConfig) -> Self {
         self.config = Some(config);
         self
     }
 
     #[cfg(feature = "watch")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "watch")))]
+    /// Default poll_interval is 2 seconds.
     pub fn with_poll_interval(mut self, poll_interval: Duration) -> Self {
         self.poll_interval = poll_interval;
         self
     }
 
+    /// Returns the constructed [`Calibright`] instance.
     pub async fn build(self) -> Result<Calibright> {
         let config = match self.config {
             Some(config) => config,
@@ -171,6 +179,8 @@ impl Calibright {
     }
 
     #[cfg(feature = "watch")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "watch")))]
+    /// Wait for a device to be added/removed or for brightness to be changed.
     pub async fn next(&mut self) -> Result<()> {
         use futures::StreamExt;
         use std::path::{Path, PathBuf};
@@ -247,6 +257,8 @@ impl Calibright {
         Err(CalibrightError::Other("Nothing to watch".into()))
     }
 
+    /// Get the average screen brightness based on the calibration settings.
+    /// Brightness is in range 0.0 to 1.0 (inclusive).
     pub async fn get_brightness(&mut self) -> Result<f64> {
         let brightnesses = join_all_accept_single_ok(
             self.devices
@@ -258,6 +270,8 @@ impl Calibright {
         Ok(brightnesses.iter().sum::<f64>() / (brightnesses.len() as f64))
     }
 
+    /// Set the screen brightness based on the calibration settings.
+    /// Brightness is in range 0.0 to 1.0 (inclusive).
     pub async fn set_brightness(&mut self, brightness: f64) -> Result<()> {
         join_all_accept_single_ok(
             self.devices

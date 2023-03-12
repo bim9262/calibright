@@ -89,7 +89,7 @@ pub struct DeviceConfig {
 
 #[derive(Deserialize, Clone, Default)]
 #[serde(default)]
-pub struct UnresolvedCalibrightConfig {
+struct UnresolvedCalibrightConfig {
     global: UnresolvedDeviceConfig,
     #[serde(flatten)]
     overrides: HashMap<String, UnresolvedDeviceConfig>,

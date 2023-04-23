@@ -28,7 +28,8 @@ macro_rules! make_log_macro {
 /// Automatically append an extension if not presented.
 pub fn find_file(file: &str, subdir: Option<&str>, extension: Option<&str>) -> Option<PathBuf> {
     let file = PathBuf::from(file);
-    if file.exists() {
+
+    if file.is_absolute() && file.exists() {
         return Some(file);
     }
 

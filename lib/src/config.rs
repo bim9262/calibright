@@ -158,6 +158,7 @@ impl CalibrightConfig {
     /// Uses a custom [`DeviceConfig`] for the default global values.
     pub async fn new_with_defaults(defaults: &DeviceConfig) -> Result<Self> {
         if let Some(config_path) = find_file("config", None, Some("toml")) {
+            debug!("config_path={}", config_path.display());
             deserialize_toml_file(config_path)
         } else {
             Ok(UnresolvedCalibrightConfig::default())

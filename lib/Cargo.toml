@@ -14,7 +14,6 @@ watch = ["notify"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 dirs = "4.0"
-env_logger = { workspace = true }
 log = { workspace = true }
 notify = { version = "5.1", optional = true, default_features = false }
 regex = "1.5"

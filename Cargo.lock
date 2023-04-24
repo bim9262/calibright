@@ -81,7 +81,6 @@ name = "calibright"
 version = "0.1.2"
 dependencies = [
  "dirs",
- "env_logger",
  "futures",
  "log",
  "notify",

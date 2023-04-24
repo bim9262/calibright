@@ -12,7 +12,6 @@ members = ["lib", "bin"]
 
 [workspace.dependencies]
 tokio = { version = "1.12", default-features = false }
-env_logger = { version = "0.10" }
 log = { version = "0.4" }
 
 [patch.crates-io]

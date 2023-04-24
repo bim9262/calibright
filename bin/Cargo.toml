@@ -11,7 +11,7 @@ version = "0.1.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 calibright = "0.1"
-env_logger = { workspace = true }
+env_logger = { version = "0.10" }
 log = { workspace = true }
 
 [dependencies.clap]

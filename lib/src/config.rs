@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde::Deserializer;
 use smart_default::SmartDefault;
 
-make_log_macro!(debug, "config");
+make_log_macro!(debug, "calibright_config");
 
 #[derive(Deserialize, Clone, Debug, Default)]
 #[serde(deny_unknown_fields)]

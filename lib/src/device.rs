@@ -14,7 +14,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::time::sleep;
 use zbus::Connection;
 
-make_log_macro!(debug, "device");
+make_log_macro!(debug, "calibright_device");
 
 #[zbus::dbus_proxy(
     interface = "org.freedesktop.login1.Session",

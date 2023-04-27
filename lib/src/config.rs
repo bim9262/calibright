@@ -3,7 +3,9 @@ use crate::errors::*;
 use crate::util::*;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
+use dirs::config_dir;
 use serde::Deserialize;
 use serde::Deserializer;
 use smart_default::SmartDefault;
@@ -157,7 +159,7 @@ impl CalibrightConfig {
 
     /// Uses a custom [`DeviceConfig`] for the default global values.
     pub async fn new_with_defaults(defaults: &DeviceConfig) -> Result<Self> {
-        if let Some(config_path) = find_file("config", None, Some("toml")) {
+        if let Some(config_path) = config_path() {
             debug!("config_path={}", config_path.display());
             deserialize_toml_file(config_path)
         } else {
@@ -175,5 +177,17 @@ impl CalibrightConfig {
             debug!("using global config");
             self.global.clone()
         }
+    }
+}
+
+fn config_path() -> Option<PathBuf> {
+    let mut xdg_config = config_dir()?;
+    xdg_config.push("calibright");
+    xdg_config.push("config");
+    if xdg_config.exists() {
+        Some(xdg_config)
+    } else {
+        xdg_config.set_extension("toml");
+        xdg_config.exists().then_some(xdg_config)
     }
 }

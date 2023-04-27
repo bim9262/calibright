@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use dirs::config_dir;
 use futures::{future::join_all, Future};
 use serde::de::DeserializeOwned;
 use tokio::io::AsyncReadExt;
@@ -19,48 +18,6 @@ macro_rules! make_log_macro {
     ($macro_name:ident, $block_name:literal) => {
         make_log_macro!(@wdoll $macro_name, $block_name, ($));
     };
-}
-
-/// Tries to find a file in standard locations:
-/// - Fist try to find a file by full path
-/// - Then try XDG_CONFIG_HOME (e.g. `~/.config`)
-///
-/// Automatically append an extension if not presented.
-pub fn find_file(file: &str, subdir: Option<&str>, extension: Option<&str>) -> Option<PathBuf> {
-    let file = PathBuf::from(file);
-
-    if file.is_absolute() && file.exists() {
-        return Some(file);
-    }
-
-    // Try XDG_CONFIG_HOME (e.g. `~/.config`)
-    if let Some(mut xdg_config) = config_dir() {
-        xdg_config.push("calibright");
-        if let Some(subdir) = subdir {
-            xdg_config.push(subdir);
-        }
-        xdg_config.push(&file);
-        if let Some(file) = exists_with_opt_extension(&xdg_config, extension) {
-            return Some(file);
-        }
-    }
-
-    None
-}
-
-fn exists_with_opt_extension(file: &Path, extension: Option<&str>) -> Option<PathBuf> {
-    if file.exists() {
-        return Some(file.into());
-    }
-    // If file has no extension, test with given extension
-    if let (None, Some(extension)) = (file.extension(), extension) {
-        let file = file.with_extension(extension);
-        // Check again with extension added
-        if file.exists() {
-            return Some(file);
-        }
-    }
-    None
 }
 
 pub fn deserialize_toml_file<T, P>(path: P) -> Result<T>

@@ -1,5 +1,10 @@
 # Changelog
 
+# v0.1.4
+
+lib: replace find_file() with a small specialized function. See https://github.com/bim9262/calibright/pull/11
+license: Add symlink to LICENSE file in lib and bin dirs. See https://github.com/bim9262/calibright/pull/12
+
 # v0.1.3
 
 config: Do not look for files relative to the CWD. See https://github.com/greshake/i3status-rust/issues/1870.

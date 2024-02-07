@@ -6,7 +6,7 @@ readme.workspace = true
 license.workspace = true
 authors.workspace = true
 edition.workspace = true
-version = "0.1.4"
+version = "0.1.5"
 
 [features]
 watch = ["notify"]
@@ -15,12 +15,12 @@ watch = ["notify"]
 [dependencies]
 dirs = "5.0"
 log = { workspace = true }
-notify = { version = "5.1", optional = true, default_features = false }
+notify = { version = "6.1", optional = true, default-features = false }
 regex = "1.5"
 smart-default = "0.7"
 thiserror = "1.0"
 tokio = { workspace = true }
-toml = "0.7"
+toml = "0.8"
 
 [dependencies.futures]
 version = "0.3"

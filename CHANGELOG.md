@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.1.5
+
+bump dependencies
+
 # v0.1.4
 
 lib: replace find_file() with a small specialized function. See https://github.com/bim9262/calibright/pull/11

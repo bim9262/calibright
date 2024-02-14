@@ -16,7 +16,7 @@ use zbus::Connection;
 
 make_log_macro!(debug, "calibright_device");
 
-#[zbus::dbus_proxy(
+#[zbus::proxy(
     interface = "org.freedesktop.login1.Session",
     default_service = "org.freedesktop.login1",
     default_path = "/org/freedesktop/login1/session/auto"

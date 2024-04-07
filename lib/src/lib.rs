@@ -182,10 +182,9 @@ impl Calibright {
     #[cfg_attr(docsrs, doc(cfg(feature = "watch")))]
     /// Wait for a device to be added/removed or for brightness to be changed.
     pub async fn next(&mut self) -> Result<()> {
-        use futures::StreamExt;
         use std::path::{Path, PathBuf};
 
-        while let Some(res) = self.rx.next().await {
+        while let Some(res) = self.rx.recv().await {
             let mut change_occurred = false;
             let event = res?;
             debug!("{:?}", event);

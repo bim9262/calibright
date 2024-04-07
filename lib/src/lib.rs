@@ -15,7 +15,7 @@ mod watcher;
 use std::collections::HashMap;
 use std::ffi::OsString;
 
-use futures::future::join_all;
+use futures_util::future::join_all;
 use regex::Regex;
 use tokio::fs::read_dir;
 

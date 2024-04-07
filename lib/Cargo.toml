@@ -22,7 +22,7 @@ thiserror = "1.0"
 tokio = { workspace = true }
 toml = "0.8"
 
-[dependencies.futures]
+[dependencies.futures-util]
 version = "0.3"
 default-features = false
 

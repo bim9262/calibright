@@ -1,7 +1,8 @@
 use std::path::Path;
 
-use futures::{future::join_all, Future};
+use futures_util::future::join_all;
 use serde::de::DeserializeOwned;
+use std::future::Future;
 use tokio::io::AsyncReadExt;
 
 use crate::errors::*;

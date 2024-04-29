@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.1.7
+
+remove some dependencies
+
+# v0.1.6
+
+bump dependencies
 # v0.1.5
 
 bump dependencies

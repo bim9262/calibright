@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.1.8
+
+bump dependencies
+
 # v0.1.7
 
 remove some dependencies

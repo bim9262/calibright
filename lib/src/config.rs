@@ -159,9 +159,9 @@ impl CalibrightConfig {
 
     /// Uses a custom [`DeviceConfig`] for the default global values.
     pub async fn new_with_defaults(defaults: &DeviceConfig) -> Result<Self> {
-        if let Some(config_path) = config_path() {
+        if let Some(config_path) = config_path().await? {
             debug!("config_path={}", config_path.display());
-            deserialize_toml_file(config_path)
+            deserialize_toml_file(config_path).await
         } else {
             Ok(UnresolvedCalibrightConfig::default())
         }
@@ -180,14 +180,19 @@ impl CalibrightConfig {
     }
 }
 
-fn config_path() -> Option<PathBuf> {
-    let mut xdg_config = config_dir()?;
+async fn config_path() -> Result<Option<PathBuf>> {
+    let mut xdg_config = match config_dir() {
+        Some(xdg_config) => xdg_config,
+        None => return Err(CalibrightError::Other("Could not get xdg_config".into())),
+    };
     xdg_config.push("calibright");
     xdg_config.push("config");
-    if xdg_config.exists() {
+    Ok(if tokio::fs::try_exists(&xdg_config).await? {
         Some(xdg_config)
     } else {
         xdg_config.set_extension("toml");
-        xdg_config.exists().then_some(xdg_config)
-    }
+        tokio::fs::try_exists(&xdg_config)
+            .await?
+            .then_some(xdg_config)
+    })
 }

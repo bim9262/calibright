@@ -21,14 +21,14 @@ macro_rules! make_log_macro {
     };
 }
 
-pub fn deserialize_toml_file<T, P>(path: P) -> Result<T>
+pub async fn deserialize_toml_file<T, P>(path: P) -> Result<T>
 where
     T: DeserializeOwned,
     P: AsRef<Path>,
 {
     let path = path.as_ref();
 
-    let contents = std::fs::read_to_string(path)?;
+    let contents = read_file(path).await?;
 
     toml::from_str(&contents).map_err(|err| {
         #[allow(deprecated)]

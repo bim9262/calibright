@@ -1,8 +1,13 @@
 # Changelog
 
-## v0.1.9 [unreleased]
 
-* replaced blocking code with async version
+## v0.1.10
+
+* Fix check to see if `amdgpu_bl` is used (https://github.com/bim9262/calibright/issues/18)
+
+## v0.1.9
+
+* Replaced blocking code with async version
 
 ## v0.1.8
 

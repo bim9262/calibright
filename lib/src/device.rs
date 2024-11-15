@@ -4,7 +4,7 @@ use crate::errors::*;
 use crate::util::*;
 
 use std::cmp::max;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 #[cfg(feature = "watch")]
@@ -47,7 +47,11 @@ impl Device {
 
         let mut s = Self {
             read_brightness_file: device_path.join({
-                if device_path.ends_with("amdgpu_bl0") {
+                if device_path
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .map_or(false, |file_name| file_name.starts_with("amdgpu_bl"))
+                {
                     FILE_BRIGHTNESS_AMD
                 } else {
                     FILE_BRIGHTNESS

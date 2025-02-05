@@ -38,7 +38,7 @@ pub struct CalibrightBuilder<'a> {
     poll_interval: Duration,
 }
 
-impl<'a> Default for CalibrightBuilder<'a> {
+impl Default for CalibrightBuilder<'_> {
     fn default() -> Self {
         Self {
             device_regex: ".",

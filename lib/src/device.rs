@@ -50,7 +50,7 @@ impl Device {
                 if device_path
                     .file_name()
                     .and_then(OsStr::to_str)
-                    .map_or(false, |file_name| file_name.starts_with("amdgpu_bl"))
+                    .is_some_and(|file_name| file_name.starts_with("amdgpu_bl"))
                 {
                     FILE_BRIGHTNESS_AMD
                 } else {

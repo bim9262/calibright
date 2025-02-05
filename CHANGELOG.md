@@ -1,6 +1,8 @@
 # Changelog
 
+## v0.1.11
 
+bump dependencies
 ## v0.1.10
 
 * Fix check to see if `amdgpu_bl` is used (https://github.com/bim9262/calibright/issues/18)

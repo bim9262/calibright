@@ -10,7 +10,7 @@ use std::time::Duration;
 #[cfg(feature = "watch")]
 use std::time::Instant;
 use tokio::fs::OpenOptions;
-use tokio::io::AsyncWriteExt;
+use tokio::io::AsyncWriteExt as _;
 use tokio::time::sleep;
 use zbus::Connection;
 

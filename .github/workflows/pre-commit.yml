@@ -13,10 +13,12 @@ jobs:
                 check-merge-conflict,
                 check-case-conflict,
                 detect-private-key,
+                mixed-line-ending,
+                trailing-whitespace,
                 cspell,
                 typos,
-                fmt,
-                clippy,
+                cargo-fmt,
+                cargo-clippy,
                 cargo-test,
               ]
     steps:

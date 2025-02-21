@@ -4,12 +4,12 @@ repository = "https://github.com/bim9262/calibright"
 readme = "README.md"
 license = "GPL-3.0-only"
 authors = ["Bryan Malyn <bim9262@gmail.com>"]
-edition = "2021"
+edition = "2024"
 version = "0.1.11"
 
 [workspace]
 members = ["lib", "bin"]
-resolver = "2"
+resolver = "3"
 
 [workspace.dependencies]
 tokio = { version = "1.43", default-features = false, features = ["sync"] }

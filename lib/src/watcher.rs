@@ -1,6 +1,7 @@
 use notify::{Config, Event, RecursiveMode, Result};
-pub(crate) use notify::{INotifyWatcher, PollWatcher, Watcher};
 use tokio::sync::mpsc::channel;
+
+pub(crate) use notify::{INotifyWatcher, PollWatcher, Watcher};
 pub(crate) use tokio::sync::mpsc::Receiver;
 
 use std::path::Path;

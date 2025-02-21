@@ -16,6 +16,7 @@ words:
   - ddcci
   - ddcutil
   - docsrs
+  - dtolnay
   - inotify
   - Malyn
   - MSVC

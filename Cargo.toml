@@ -5,7 +5,7 @@ readme = "README.md"
 license = "GPL-3.0-only"
 authors = ["Bryan Malyn <bim9262@gmail.com>"]
 edition = "2024"
-version = "0.1.11"
+version = "0.1.12"
 
 [workspace]
 members = ["lib", "bin"]

@@ -137,8 +137,8 @@ impl Calibright {
                 Device::new(device_name, config.get_device_config(device_name))
             }))
             .await;
-        let device_list = device_list.iter().filter_map(|device| match device {
-            Ok(device) => Some(device.to_owned()),
+        let device_list = device_list.into_iter().filter_map(|device| match device {
+            Ok(device) => Some(device),
             Err(e) => {
                 debug!("{e}");
                 None
@@ -262,8 +262,8 @@ impl Calibright {
     pub async fn get_brightness(&mut self) -> Result<f64> {
         let brightnesses = join_all_accept_single_ok(
             self.devices
-                .iter_mut()
-                .map(|(_, device)| device.get_brightness()),
+                .values_mut()
+                .map(|device| device.get_brightness()),
         )
         .await?;
 

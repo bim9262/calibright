@@ -1,8 +1,16 @@
 # Changelog
 
+## v0.1.12
+
+* Remove smart-default dependency
+* Replace some `&String`s for `&str`s
+* Reduce cloning
+* deny_unknown_fields in config
+
 ## v0.1.11
 
-bump dependencies
+* bump dependencies
+
 ## v0.1.10
 
 * Fix check to see if `amdgpu_bl` is used (https://github.com/bim9262/calibright/issues/18)

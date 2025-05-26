@@ -8,11 +8,10 @@ use std::path::PathBuf;
 use dirs::config_dir;
 use serde::Deserialize;
 use serde::Deserializer;
-use smart_default::SmartDefault;
 
 make_log_macro!(debug, "calibright_config");
 
-#[derive(Deserialize, Clone, Debug, Default)]
+#[derive(Deserialize, Debug, Default)]
 #[serde(deny_unknown_fields)]
 struct UnresolvedDeviceConfig {
     #[serde(default, deserialize_with = "deserialize_root_scaling")]
@@ -76,35 +75,41 @@ where
     Ok(calibration.map(|limits| limits.map(|val| val / 100.0)))
 }
 
-#[derive(Clone, Debug, SmartDefault)]
+#[derive(Clone, Debug)]
 pub struct DeviceConfig {
     /// Scaling exponent reciprocal (ie. root).
-    #[default(1.0)]
     pub root_scaling: f64,
 
     /// See [ddcutil documentation](https://www.ddcutil.com/performance_options/#option-sleep-multiplier).
-    #[default(1.0)]
     pub ddcci_sleep_multiplier: f64,
 
     /// The maximum number of times to attempt writing to  or reading from a ddcci monitor.
-    #[default(10)]
     pub ddcci_max_tries_write_read: u8,
 
     /// A pair of floats representing the the min and max brightness.
     /// Calibration values are given as 0-100 in the config, but mapped to 0-1.
-    #[default([0.0, 1.0])]
     pub calibration: [f64; 2],
 }
 
-#[derive(Deserialize, Clone, Default)]
-#[serde(default)]
+impl Default for DeviceConfig {
+    fn default() -> Self {
+        DeviceConfig {
+            root_scaling: 1.0,
+            ddcci_sleep_multiplier: 1.0,
+            ddcci_max_tries_write_read: 10,
+            calibration: [0.0, 1.0],
+        }
+    }
+}
+
+#[derive(Deserialize, Default)]
+#[serde(default, deny_unknown_fields)]
 struct UnresolvedCalibrightConfig {
     global: UnresolvedDeviceConfig,
     #[serde(flatten)]
     overrides: HashMap<String, UnresolvedDeviceConfig>,
 }
 
-#[derive(Clone)]
 /// Reads in the calibright configuration file
 pub struct CalibrightConfig {
     global: DeviceConfig,
@@ -112,7 +117,7 @@ pub struct CalibrightConfig {
 }
 
 impl UnresolvedCalibrightConfig {
-    fn resolve(&self, defaults: &DeviceConfig) -> CalibrightConfig {
+    fn resolve(self, defaults: &DeviceConfig) -> CalibrightConfig {
         let global = DeviceConfig {
             root_scaling: self.global.root_scaling.unwrap_or(defaults.root_scaling),
             ddcci_sleep_multiplier: self
@@ -126,11 +131,11 @@ impl UnresolvedCalibrightConfig {
             calibration: self.global.calibration.unwrap_or(defaults.calibration),
         };
 
-        let mut resolved_overrides = HashMap::<String, DeviceConfig>::new();
+        let mut resolved_overrides = HashMap::new();
 
-        for (device_name, device_config) in &self.overrides {
+        for (device_name, device_config) in self.overrides {
             resolved_overrides.insert(
-                device_name.to_owned(),
+                device_name,
                 DeviceConfig {
                     root_scaling: device_config.root_scaling.unwrap_or(global.root_scaling),
                     ddcci_sleep_multiplier: device_config
@@ -168,7 +173,7 @@ impl CalibrightConfig {
         .map(|config| config.resolve(defaults))
     }
 
-    pub(crate) fn get_device_config(&self, device_name: &String) -> DeviceConfig {
+    pub(crate) fn get_device_config(&self, device_name: &str) -> DeviceConfig {
         debug!("{}", device_name);
         if let Some(device_config) = self.overrides.get(device_name) {
             debug!("{:?}", device_config);

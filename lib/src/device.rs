@@ -26,7 +26,6 @@ trait Session {
 }
 
 /// Represents a physical backlight device whose brightness level can be queried.
-#[derive(Clone)]
 pub struct Device {
     pub device_name: OsString,
     pub read_brightness_file: PathBuf,
@@ -40,7 +39,7 @@ pub struct Device {
 }
 
 impl Device {
-    pub async fn new(device_name: &String, config: DeviceConfig) -> Result<Self> {
+    pub async fn new(device_name: &str, config: DeviceConfig) -> Result<Self> {
         let device_path = PathBuf::from(DEVICES_PATH).join(device_name);
 
         let dbus_conn = Connection::system().await?;

@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.1.12
+## v0.1.13
+
+* Rebased changes
+
+## v0.1.12 (yanked, forgot to rebase)
 
 * Remove smart-default dependency
 * Replace some `&String`s for `&str`s

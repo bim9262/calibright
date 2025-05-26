@@ -254,7 +254,7 @@ checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
 
 [[package]]
 name = "calibright"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "dirs",
  "futures-util",
@@ -270,7 +270,7 @@ dependencies = [
 
 [[package]]
 name = "calibright_cli"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "calibright",
  "clap",

@@ -31,15 +31,13 @@ where
 {
     let root_scaling = Option::<f64>::deserialize(deserializer)?;
 
-    if let Some(root_scaling) = root_scaling {
-        debug!("{:?}", root_scaling);
-
-        if !ROOT_SCALDING_RANGE.contains(&root_scaling) {
-            return Err(serde::de::Error::invalid_value(
-                serde::de::Unexpected::Float(root_scaling),
-                &"number in the range of 0.1 to 10.",
-            ));
-        }
+    if let Some(root_scaling) = root_scaling
+        && !ROOT_SCALDING_RANGE.contains(&root_scaling)
+    {
+        return Err(serde::de::Error::invalid_value(
+            serde::de::Unexpected::Float(root_scaling),
+            &"number in the range of 0.1 to 10.",
+        ));
     }
 
     Ok(root_scaling)

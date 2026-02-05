@@ -201,52 +201,49 @@ impl Calibright {
                 .collect();
             if event.kind.is_create() && !depth1_paths.is_empty() {
                 for path in depth1_paths {
-                    if let Some(file_name) = path.file_name() {
-                        let device_name = file_name.to_string_lossy().to_string();
-                        debug!("New device {:?}", device_name);
-                        if self.devices.contains_key(file_name) {
-                            // We already know about this device, so no need to create a new `Device`
-                            debug!("New device {:?}, already known", path);
-                            continue;
-                        }
-                        if self.device_regex.is_match(&device_name) {
-                            debug!("{:?} matched {}", device_name, self.device_regex.as_str());
-                            let new_device = Device::new(
-                                &device_name,
-                                self.config.get_device_config(&device_name),
-                            )
-                            .await?;
-                            let watch_path = new_device.read_brightness_file.clone();
-                            self.inotify_watcher
-                                .watch(&watch_path, notify::RecursiveMode::NonRecursive)?;
-                            self.devices
-                                .insert(new_device.device_name.clone(), new_device);
-                            change_occurred = true;
-                        }
+                    let Some(file_name) = path.file_name() else {
+                        continue;
+                    };
+                    let device_name = file_name.to_string_lossy().to_string();
+                    debug!("New device {:?}", device_name);
+                    if self.devices.contains_key(file_name) {
+                        // We already know about this device, so no need to create a new `Device`
+                        debug!("New device {:?}, already known", path);
+                        continue;
+                    }
+                    if self.device_regex.is_match(&device_name) {
+                        debug!("{:?} matched {}", device_name, self.device_regex.as_str());
+                        let new_device =
+                            Device::new(&device_name, self.config.get_device_config(&device_name))
+                                .await?;
+                        let watch_path = new_device.read_brightness_file.clone();
+                        self.inotify_watcher
+                            .watch(&watch_path, notify::RecursiveMode::NonRecursive)?;
+                        self.devices
+                            .insert(new_device.device_name.clone(), new_device);
+                        change_occurred = true;
                     }
                 }
             } else if event.kind.is_remove() && !depth1_paths.is_empty() {
                 for path in depth1_paths {
-                    if let Some(file_name) = path.file_name() {
-                        debug!("Remove {}", path.display());
-                        if let Some(old_device) = self.devices.remove(file_name) {
-                            debug!("Removed {}", old_device.read_brightness_file.display());
-                            self.inotify_watcher
-                                .unwatch(&old_device.read_brightness_file)?;
-                            change_occurred = true;
-                        }
+                    debug!("Remove {}", path.display());
+                    if let Some(file_name) = path.file_name()
+                        && let Some(old_device) = self.devices.remove(file_name)
+                    {
+                        debug!("Removed {}", old_device.read_brightness_file.display());
+                        self.inotify_watcher
+                            .unwatch(&old_device.read_brightness_file)?;
+                        change_occurred = true;
                     }
                 }
             } else if event.kind.is_modify() && !brightness_paths.is_empty() {
                 for brightness_path in brightness_paths {
-                    if let Some(path) = brightness_path.parent() {
-                        if let Some(file_name) = path.file_name() {
-                            if let Some(device) = self.devices.get(file_name) {
-                                if device.get_last_set_ago() > self.poll_interval {
-                                    change_occurred = true;
-                                }
-                            }
-                        }
+                    if let Some(path) = brightness_path.parent()
+                        && let Some(file_name) = path.file_name()
+                        && let Some(device) = self.devices.get(file_name)
+                        && device.get_last_set_ago() > self.poll_interval
+                    {
+                        change_occurred = true;
                     }
                 }
             }
